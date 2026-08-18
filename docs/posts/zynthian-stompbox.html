@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zynthian Stompbox — Neural Multi-FX Floor Unit — Rhyzome Adkisson-Rivas</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
+</head>
+<body>
+<header class="site-head">
+<p class="site-title"><a href="../index.html">Rhyzome Adkisson-Rivas</a></p>
+<p class="site-sub">works &amp; notes</p>
+</header>
+<main>
+<article class="post type-exhibit">
+<h1>Zynthian Stompbox — Neural Multi-FX Floor Unit</h1>
+<p class="meta">2026-08-12 · exhibit</p>
+
+<h2>About</h2>
+<p>A custom guitar multi-FX floor unit: ZynthianOS on a Raspberry Pi 5 hosting NAM (Neural Amp Modeler) plus reverbs, delays, modulation. Five-inch touchscreen, four rotary encoders, eight footswitches in a 2×4 grid. Research complete, paused August 2026 awaiting parts.</p>
+<h2>The interesting engineering</h2>
+<p>Tier 2 strategy: reuse Zynthian's Control PACK v5 (the hard PCB) but skip the MainBoard by replicating its two essential functions — the WS2812 3.3→5 V level shifter and the I2C pull-ups — on a ~$2 breakout. Verified against the actual KiCad netlists, not the marketing page (the MainBoard is not a passive wiring hub; it carries the 74LVC3G17 buffer, pull-ups, and RTC).</p>
+<p>Footswitches: Zynthian V5 has no raw-GPIO footswitch path, so eight switches run through an RP2040 USB-MIDI controller into MIDI-learn. Guitar input: Arturia MiniFuse 1 (1 MΩ Hi-Z) — the MainBoard's 20 kΩ line input cannot serve a passive guitar. Power: 9 V pedal PSU → 5 V/5 A buck → Pi header.</p>
+<h2>Bill of materials</h2>
+<p>≈ $500–550 all-in, every line verified or marked estimate.</p>
+<p>Related: <a href="../zettels/diy-space-as-instrument.html">DIY Space as Instrument</a>.</p>
+</article>
+<nav class="pager">
+<a href="../index.html">index</a>
+</nav>
+</main>
+<footer class="site-foot">
+<p>Rhyzome Adkisson-Rivas · <a href="mailto:radkisson@pm.me">radkisson@pm.me</a></p>
+<p class="dim">https://radkisson.github.io/indexhibit</p>
+</footer>
+</body>
+</html>

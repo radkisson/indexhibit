@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ball → Sound — Sonifying a Translucent Ball — Rhyzome Adkisson-Rivas</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
+</head>
+<body>
+<header class="site-head">
+<p class="site-title"><a href="../index.html">Rhyzome Adkisson-Rivas</a></p>
+<p class="site-sub">works &amp; notes</p>
+</header>
+<main>
+<article class="post type-exhibit">
+<h1>Ball → Sound — Sonifying a Translucent Ball</h1>
+<p class="meta">2026-08-12 · exhibit</p>
+
+<h2>About</h2>
+<p>Making a translucent ball audible: track it through a camera, map the trajectory to sound. The tracking side is honest engineering research — which is to say, documented failure included.</p>
+<h2>The tracking problem</h2>
+<p>The baseline apparatus (OpenCV <code>TrackerMIL</code> + Hough single-ball detector, GoPro as webcam) lacks multi-object tracking, denoising, and stable IDs. Candidate replacement: DEVA (Cheng et al., ICCV 2023, arXiv:2309.03903), a decoupled video-segmentation framework.</p>
+<p>I reimplemented DEVA from scratch, zero learned weights, 614 lines of OpenCV + numpy + scipy: pluggable segmenters, optical-flow mask propagation, exact branch-and-bound MWIS for the in-clip consensus, bipartite matching for merges. The synthetic demo passes exactly as the paper claims: bi-directional consensus denoises flicker (0 survivors); causal online mode keeps ghost IDs.</p>
+<h2>The honest limitation</h2>
+<p>On the real 234-frame dataset of the translucent ball, it fragments badly (101 IDs). Root cause, diagnosed directly: dense optical flow cannot propagate a semi-transparent object — the background bleeds through, the flow field captures the camera, and masks drift. The learned propagator (XMem-class) is the next step, not more classical flow.</p>
+<h2>Sound side</h2>
+<p>Ableton sound-design spec and TouchDesigner tracker spec define the mapping from trajectory to sound.</p>
+<p>Related: <a href="../zettels/listening-as-method.html">Listening as Method</a>.</p>
+</article>
+<nav class="pager">
+<a href="../index.html">index</a>
+</nav>
+</main>
+<footer class="site-foot">
+<p>Rhyzome Adkisson-Rivas · <a href="mailto:radkisson@pm.me">radkisson@pm.me</a></p>
+<p class="dim">https://radkisson.github.io/indexhibit</p>
+</footer>
+</body>
+</html>
