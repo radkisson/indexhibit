@@ -1,0 +1,87 @@
+/* indexhibit — monochrome. white paper, black ink, one gray. */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #000;
+  --paper: #fff;
+  --dim: #888;
+  --faint: #bbb;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html { font-size: 18px; -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--mono);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main { flex: 1; width: 100%; max-width: 720px; margin: 0 auto; padding: 2.5rem 1.25rem 3rem; }
+
+a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+a:hover { background: var(--ink); color: var(--paper); }
+
+.site-head { max-width: 720px; margin: 0 auto; width: 100%; padding: 2rem 1.25rem 0; }
+.site-title { font-size: 1.2rem; font-weight: 700; }
+.site-title a { text-decoration: none; }
+.site-sub { color: var(--dim); font-size: 0.85rem; margin-top: 0.15rem; }
+
+.site-foot { max-width: 720px; margin: 0 auto; width: 100%; padding: 0 1.25rem 2.5rem; font-size: 0.8rem; color: var(--dim); }
+.site-foot p + p { margin-top: 0.25rem; }
+.dim { color: var(--dim); }
+
+/* index */
+.index-group { margin-bottom: 2.25rem; }
+.index-group h2 {
+  font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--dim); border-bottom: 1px solid var(--ink); padding-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+.index-group ul { list-style: none; }
+.index-group li {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+  padding: 0.45rem 0; border-bottom: 1px dotted var(--faint);
+}
+.index-group li a { text-decoration: none; }
+.index-group li a:hover { text-decoration: underline; background: none; }
+.index-group .meta { color: var(--dim); font-size: 0.8rem; white-space: nowrap; }
+.index-zettels { margin-top: 2rem; font-size: 0.8rem; }
+
+.draftflag { color: var(--dim); font-size: 0.75rem; margin-left: 0.5rem; }
+
+/* posts / zettels */
+article.post, article.zettel, article.about { font-size: 0.95rem; }
+article h1 { font-size: 1.45rem; line-height: 1.2; margin-bottom: 0.35rem; }
+article .meta { color: var(--dim); font-size: 0.8rem; margin-bottom: 1.5rem; }
+article h2 { font-size: 1.05rem; margin: 1.75rem 0 0.5rem; }
+article p { margin-bottom: 0.9rem; }
+article ul, article ol { margin: 0 0 0.9rem 1.25rem; }
+article img { max-width: 100%; height: auto; display: block; margin: 1.25rem 0; }
+article blockquote { border-left: 2px solid var(--ink); padding-left: 1rem; color: var(--dim); margin-bottom: 0.9rem; }
+article code { font-family: var(--mono); background: #f0f0f0; padding: 0.05em 0.3em; }
+article pre { background: #f0f0f0; padding: 0.75rem; overflow-x: auto; margin-bottom: 0.9rem; }
+article pre code { background: none; padding: 0; }
+article.draft > h1::after { content: " — draft"; color: var(--dim); font-weight: 400; }
+
+/* zettel link sections */
+.linksec { margin-top: 2rem; border-top: 1px solid var(--ink); padding-top: 0.75rem; }
+.linksec h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); margin: 0 0 0.35rem; }
+.linksec ul { list-style: none; margin-left: 0; font-size: 0.85rem; }
+.linksec li { padding: 0.2rem 0; }
+
+/* wiki links */
+.wiki-broken { color: #999; border-bottom: 1px dotted #999; }
+
+.pager { margin-top: 2.5rem; font-size: 0.85rem; }
+
+@media (max-width: 640px) {
+  html { font-size: 16px; }
+  .index-group li { flex-direction: column; gap: 0.1rem; }
+}
