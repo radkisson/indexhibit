@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""indexhibit — monochrome static builder.
+"""indexhibit — static builder with v2 sidebar layout.
 
 Reads src/posts/*.md, src/zettels/*.md, src/about.md (+ entries.json, style.css,
 src/media/) and writes a complete HTML site to docs/.
@@ -26,10 +26,14 @@ OUT = ROOT / "docs"
 
 KATEX_CSS = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">'
 KATEX_JS = '<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>'
-KATEX_AUTO = '<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, {delimiters: [{left: \'$$\', right: \'$$\', display: true}, {left: \'$\', right: \'$\', display: false}]});"></script>'
+KATEX_AUTO = '<script defer src=\"https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js\" crossorigin=\"anonymous\" onload=\"renderMathInElement(document.body, {delimiters: [{left: \x27$$\x27, right: \x27$$\x27, display: true}, {left: \x27$\x27, right: \x27$\x27, display: false}]});\"></script>'
 
 FM_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 WIKI_RE = re.compile(r"\[\[([a-z0-9][a-z0-9-]*)\]\]")
+
+FONTS = ('\n<link rel="preconnect" href="https://fonts.googleapis.com">\n'
+         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
+         '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">')
 
 
 def parse_file(path: Path):
@@ -147,46 +151,71 @@ def media_html(meta, prefix):
     return "".join(f'<img src="{prefix}media/{f}" alt="{esc(f.rsplit(".", 1)[0])}" loading="lazy">\n' for f in files)
 
 
-def page(cfg, title, body_html, extra_head=""):
+def sidebar_html(site, cfg, active="", prefix=""):
+    brand = f'<a class="brand" href="{prefix}index.html">{esc(cfg["title"])}<span class="oxide">*</span></a>'
+    sub = f'<p class="brand-sub">{esc(cfg.get("subtitle", ""))}</p>'
+    nav_links = []
+    for num, label, href, aid in [("01", "index", "index.html", "index"), ("02", "about", "about.html", "about")]:
+        cls = " nav-link active" if active == aid else " nav-link"
+        nav_links.append(f'<a class="{cls}" href="{prefix}{href}"><span class="num">{num}</span>{label}</a>')
+
+    groups_html = []
+    for gtype, glabel in [("exhibit", "EXHIBITS"), ("note", "NOTES")]:
+        items = [(s, i) for s, i in site.posts.items() if i["meta"].get("type") == gtype and not i["meta"].get("draft")]
+        items.sort(key=lambda si: str(si[1]["meta"].get("date", "")), reverse=True)
+        if not items:
+            continue
+        groups_html.append(f'<p class="nav-group-label">{glabel}</p><div class="nav-group">')
+        for s, i in items:
+            t = i["meta"].get("title", s)
+            cls = " nav-link small active" if active == s else " nav-link small"
+            groups_html.append(f'<a class="{cls}" href="{prefix}posts/{s}.html">{esc(t)}</a>')
+        groups_html.append('</div>')
+
+    zettel_line = ''
+    if site.zettels:
+        zettel_line = f'<p class="nav-group-label">ZETTELS</p><p class="dim">{len(site.zettels)} in the graph</p>'
+
+    meta_block = (f'<div class="meta">\n'
+                 f'<a href="mailto:{esc(cfg["contact"])}">{esc(cfg["contact"])}</a><br>\n'
+                 f'{esc(cfg["base_url"])}\n'
+                 f'</div>')
+
+    return (f'<aside class="sidebar">\n'
+            f'{brand}\n{sub}\n'
+            f'<nav class="nav-section">{chr(10).join(nav_links)}</nav>\n'
+            f'<div class="nav-divider"></div>\n'
+            f'{chr(10).join(groups_html)}\n'
+            f'{zettel_line}\n'
+            f'{meta_block}\n'
+            f'</aside>')
+
+
+def page(site, cfg, title, body_html, active="", prefix=""):
+    sidebar = sidebar_html(site, cfg, active=active, prefix=prefix)
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#fafaf8">
 <title>{esc(title)} — {esc(cfg['title'])}</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="{prefix}style.css">
+{FONTS}
 {KATEX_CSS}
 {KATEX_JS}
 {KATEX_AUTO}
-{extra_head}
 </head>
 <body>
-<header class="site-head">
-<p class="site-title"><a href="{STYLE_PREFIX}index.html">{esc(cfg['title'])}</a></p>
-<p class="site-sub">{esc(cfg.get('subtitle', ''))}</p>
-</header>
-<main>
+<div class="layout">
+{sidebar}
+<main class="main">
 {body_html}
 </main>
-<footer class="site-foot">
-<p>{esc(cfg['author'])} · <a href="mailto:{esc(cfg['contact'])}">{esc(cfg['contact'])}</a></p>
-<p class="dim">{esc(cfg['base_url'])}</p>
-</footer>
+</div>
 </body>
 </html>"""
-
-
-# prefix for links from pages nested one level deep (posts/, zettels/)
-STYLE_PREFIX = ""
-
-
-def nested_page(cfg, title, body_html):
-    global STYLE_PREFIX
-    STYLE_PREFIX = "../"
-    html = page(cfg, title, body_html)
-    html = html.replace('href="style.css"', 'href="../style.css"').replace('href="index.html"', 'href="../index.html"')
-    STYLE_PREFIX = ""
-    return html
 
 
 def write_post(site, cfg, slug, item):
@@ -197,12 +226,12 @@ def write_post(site, cfg, slug, item):
     klass = "post draft" if meta.get("draft") else "post"
     parts = [f'<article class="{klass} type-{esc(ptype)}">']
     parts.append(f'<h1>{esc(title)}</h1>')
-    parts.append(f'<p class="meta">{esc(date)} · {esc(ptype)}</p>')
+    parts.append(f'<p class="cat">{esc(date)} · {esc(ptype.upper())}</p>')
     parts.append(media_html(meta, "../"))
     parts.append(site.wiki_links_html(md_to_html(body), "../"))
     parts.append("</article>")
     nav = ['<nav class="pager">', f'<a href="../index.html">index</a>', "</nav>"]
-    (OUT / "posts" / f"{slug}.html").write_text(nested_page(cfg, title, "\n".join(parts + nav)), encoding="utf-8")
+    (OUT / "posts" / f"{slug}.html").write_text(page(site, cfg, title, "\n".join(parts + nav), active=slug, prefix="../"), encoding="utf-8")
 
 
 def write_zettel(site, cfg, slug, item):
@@ -211,7 +240,7 @@ def write_zettel(site, cfg, slug, item):
     date = meta.get("date", "")
     parts = [f'<article class="zettel">']
     parts.append(f'<h1>{esc(title)}</h1>')
-    parts.append(f'<p class="meta">{esc(date)} · zettel</p>')
+    parts.append(f'<p class="cat">{esc(date)} · ZETTEL</p>')
     parts.append(site.wiki_links_html(md_to_html(body), "../"))
 
     outgoing = sorted(t for t in site.links.get(slug, ()) if site.slug_exists(t))
@@ -232,18 +261,21 @@ def write_zettel(site, cfg, slug, item):
         parts.append("</ul></section>")
     parts.append("</article>")
     nav = ['<nav class="pager">', '<a href="../index.html">index</a>', "</nav>"]
-    (OUT / "zettels" / f"{slug}.html").write_text(nested_page(cfg, title, "\n".join(parts + nav)), encoding="utf-8")
+    (OUT / "zettels" / f"{slug}.html").write_text(page(site, cfg, title, "\n".join(parts + nav), active=slug, prefix="../"), encoding="utf-8")
 
 
 def write_about(site, cfg):
     parsed = parse_file(SRC / "about.md")
     body = parsed[1] if parsed else "(no about)"
     parts = ['<article class="about">', "<h1>About</h1>", site.wiki_links_html(md_to_html(body)), "</article>"]
-    (OUT / "about.html").write_text(page(cfg, "About", "\n".join(parts)), encoding="utf-8")
+    (OUT / "about.html").write_text(page(site, cfg, "About", "\n".join(parts), active="about"), encoding="utf-8")
 
 
 def write_index(site, cfg):
     parts = []
+    tagline = cfg.get("tagline", "")
+    if tagline:
+        parts.append(f'<div class="intro">{esc(tagline)}</div>')
     groups = [("exhibit", "Exhibits"), ("note", "Notes"), ("log", "Logs")]
     for gtype, label in groups:
         items = [(s, i) for s, i in site.posts.items() if i["meta"].get("type") == gtype]
@@ -268,7 +300,7 @@ def write_index(site, cfg):
     if site.zettels:
         parts.append(f'<p class="dim index-zettels">{len(site.zettels)} zettels in the note graph.</p>')
     parts.append('<nav class="pager"><a href="about.html">about</a></nav>')
-    (OUT / "index.html").write_text(page(cfg, cfg.get("subtitle", "index"), "\n".join(parts)), encoding="utf-8")
+    (OUT / "index.html").write_text(page(site, cfg, cfg.get("subtitle", "index"), "\n".join(parts), active="index"), encoding="utf-8")
 
 
 def watch():
