@@ -180,7 +180,7 @@ article a:hover { color: var(--ink); border-bottom-color: var(--oxide); }
 article ul, article ol { margin: 0 0 var(--s3) 1.25rem; }
 article li { margin-bottom: var(--s0); }
 article img {
-  max-width: 100%; height: auto; display: block;
+  max-width: min(480px, 100%); height: auto; display: block;
   margin: var(--s4) 0; border-radius: 6px;
 }
 article blockquote {
@@ -245,10 +245,10 @@ article.draft > h1::after { content: " — draft"; color: var(--ink-dim); font-w
   .layout { display: block; }
   .sidebar {
     width: 100%; min-width: 0; height: auto;
-    position: sticky; top: 0; z-index: 100;
+    position: static;
     background: var(--paper);
     border-right: none; border-bottom: 1px solid var(--rule);
-    padding: var(--s2) var(--s3);
+    padding: var(--s1) var(--s3);
     flex-direction: row; align-items: center;
     justify-content: space-between; gap: var(--s2);
     overflow: visible;

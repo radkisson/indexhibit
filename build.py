@@ -141,6 +141,8 @@ def build():
     write_about(site, cfg)
     write_index(site, cfg)
     shutil.copy(ROOT / "style.css", OUT / "style.css")
+    write_zettels_index(site, cfg)
+    write_404(site, cfg)
 
     drafts = [s for s, i in site.posts.items() if i["meta"].get("draft")]
     print(f"  posts: {len(site.posts)} ({len(drafts)} draft)  zettels: {len(site.zettels)}  out: {OUT}")
@@ -174,7 +176,7 @@ def sidebar_html(site, cfg, active="", prefix=""):
 
     zettel_line = ''
     if site.zettels:
-        zettel_line = f'<p class="nav-group-label">ZETTELS</p><p class="dim">{len(site.zettels)} in the graph</p>'
+        zettel_line = f'<p class="nav-group-label">ZETTELS</p><a class="nav-link small" href="{prefix}zettels/index.html">{len(site.zettels)} zettels in the graph</a>'
 
     meta_block = (f'<div class="meta">\n'
                  f'<a href="mailto:{esc(cfg["contact"])}">{esc(cfg["contact"])}</a><br>\n'
@@ -301,6 +303,32 @@ def write_index(site, cfg):
         parts.append(f'<p class="dim index-zettels">{len(site.zettels)} zettels in the note graph.</p>')
     parts.append('<nav class="pager"><a href="about.html">about</a></nav>')
     (OUT / "index.html").write_text(page(site, cfg, cfg.get("subtitle", "index"), "\n".join(parts), active="index"), encoding="utf-8")
+
+
+
+def write_zettels_index(site, cfg):
+    """Create zettels/zettels/index.html listing all zettels alphabetically."""
+    parts = [f'<article class="zettel"><h1>Zettels</h1>']
+    parts.append(f'<p class="dim index-zettels">{len(site.zettels)} zettels in the note graph.</p>')
+    
+    # List all zettels alphabetically by title
+    zettel_items = sorted(site.zettels.items(), key=lambda si: si[1]["meta"].get("title", si[0]).lower())
+    parts.append('<section class="index-group"><h2>All notes</h2><ul>')
+    for slug, item in zettel_items:
+        title = item["meta"].get("title", slug)
+        parts.append(f'<li><a href="{slug}.html">{esc(title)}</a></li>')
+    parts.append('</ul></section>')
+    parts.append('<nav class="pager"><a href="../index.html">index</a></nav>')
+    parts.append('</article>')
+    
+    (OUT / "zettels" / "index.html").write_text(
+        page(site, cfg, "Zettels", "\n".join(parts), active="", prefix="../"), encoding="utf-8")
+
+
+def write_404(site, cfg):
+    """Create 404.html at root level."""
+    body_html = '<article class="zettel"><h1>404</h1><p>Page not found.</p><nav class="pager"><a href="index.html">index</a></nav></article>'
+    (OUT / "404.html").write_text(page(site, cfg, "404", body_html), encoding="utf-8")
 
 
 def watch():
